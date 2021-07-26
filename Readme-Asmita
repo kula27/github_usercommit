@@ -3,3 +3,4 @@ I couldn't share notebooks hence I have copied in textpad. To run this code, you
 I have used Azure Key Vault and Databricks Scope to store API access token
 I have assumed only public repositories for a user and considered only default branh as Main
 I have filtered out commits done by input user only
+I haven't considered pagination since I am interested in last 60 commits and I have increased value per page to 100
