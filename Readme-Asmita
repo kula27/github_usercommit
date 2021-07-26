@@ -1,0 +1,5 @@
+The files I have submitted are Azure databricks notebooks in Python
+I couldn't share notebooks hence I have copied in textpad. To run this code, you will have to copy this in Azure databricks Notebook and run cell
+I have used Azure Key Vault and Databricks Scope to store API access token
+I have assumed only public repositories for a user and considered only default branh as Main
+I have filtered out commits done by input user only
