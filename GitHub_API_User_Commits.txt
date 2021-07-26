@@ -1,0 +1,69 @@
+#This notebook requests github Repository and UserCommits APIs to display last 60 commits done by a user
+
+from datetime import datetime
+import json
+import requests 
+from pandas.io.json import json_normalize
+import pandas as pd
+import requests
+from requests.auth import HTTPBasicAuth
+
+# taking username and token as input
+username = 'kula27'
+#using azure keyvault and databricks scope
+token = dbutils.secrets.get(scope="github_scope", key="apitoken")
+
+
+# create a re-usable session object with the user creds in-built
+gh_session = requests.Session()
+gh_session.auth = (username, token)
+
+# accessing repos for a user
+github_api = "https://api.github.com"
+repos_url = github_api + '/users/'+ username + '/repos'
+
+
+# get the list of repos belonging to user 
+repo_names = []
+repos = json.loads(gh_session.get(repos_url).content)
+for item in repos:
+    repo_names.append(item["name"])
+
+#print(repo_names)
+
+#requesting commits API endpoint iteratively for every repo in repo_names
+commit = []
+for i in repo_names:
+  commit_url = github_api + '/repos/{}/{}/commits?per_page=100'.format(username, i)
+  commit_request = json.loads(gh_session.get(commit_url).content)
+  commit.append(commit_request)
+
+#print(commit)
+# selecting all commit dates for a user for all repositories - assuming the commit end point gives latest 60 commits for a repository 
+commits = []
+for items in commit:
+   for item1 in items:
+       if item1["commit"]["author"]["name"] == username:
+         commits.append(item1["commit"]["author"]["date"]) 
+        
+#converting array to dataframe and ordering commit datetimes in descending order
+df_commits = pd.DataFrame(commits, columns = ['commit_datetime']) 
+df_commits = df_commits.sort_values(by='commit_datetime',ascending=False)
+
+# selecting last 60 commits by a user
+df_commits_60 = df_commits.iloc[0:60, :]
+df_commits_60["commit_datetime"] = pd.to_datetime(df_commits_60["commit_datetime"])
+with open ("/dbfs/FileStore/tables/user_commits.csv", "w") as f: df_commits_60.to_csv(f)
+
+#print latest commits by user
+print(df_commits_60)
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+OUTPUT
+
+commit_datetime
+1 2021-07-26 01:58:43+00:00
+2 2021-07-26 01:55:47+00:00
+0 2021-07-25 04:08:25+00:00
